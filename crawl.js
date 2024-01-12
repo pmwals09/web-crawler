@@ -9,7 +9,7 @@ const { JSDOM } = require("jsdom");
  */
 function normalizeURL(path) {
   const url = new URL(path);
-  return `${url.hostname}${url.pathname}`.replace(/\/$/, "");
+  return `${url.protocol}//${url.hostname}${url.pathname}`.replace(/\/$/, "");
 }
 
 /**
@@ -25,7 +25,6 @@ function getURLsFromHTML(html, baseURL) {
   for (let link of links) {
     if (!link.href.startsWith("http")) {
       const url = new URL(link.href, baseURL);
-      console.log(url.href);
       link.href = url.href;
     }
     urls.push(link.href);
@@ -33,22 +32,45 @@ function getURLsFromHTML(html, baseURL) {
   return urls;
 }
 
-async function crawlPage(currentURL) {
-  try {
-    const res = await fetch(currentURL);
-    if (res.status >= 400) {
-      console.error(`Error: ${res.status} ${res.statusText}`);
-      return;
+/**
+ * Crawls a page and all of its links
+ * @param {string} baseURL - The base URL to use when making relative paths absolute
+ * @param {string} currentURL - The current URL to crawl
+ * @param {{[key: string]: number}} pages - A count of URLs that have already been crawled
+ * @returns {Promise<{[key: string]: number}>} A count of URLs that have already been crawled
+ */
+async function crawlPage(baseURL, currentURL, pages) {
+  const current = new URL(currentURL);
+  const base = new URL(baseURL);
+  if (current.hostname !== base.hostname) {
+    return pages;
+  }
+  const normalizedCurrent = normalizeURL(currentURL);
+  if (pages[normalizedCurrent]) {
+    pages[normalizedCurrent]++;
+  } else {
+    pages[normalizedCurrent] = 1;
+    try {
+      console.log(`Crawling ${normalizedCurrent}`);
+      const res = await fetch(normalizedCurrent);
+      if (res.status >= 400) {
+        console.error(`Error: ${res.status} ${res.statusText}`);
+        return pages;
+      }
+      if (!res.headers.get("content-type").includes("text/html")) {
+        console.error(`Error: ${res.status} ${res.statusText}, ${res.headers.get("content-type")}`);
+        return pages;
+      }
+
+      const newURLs = getURLsFromHTML(await res.text(), baseURL);
+      for (const url of newURLs) {
+        await crawlPage(baseURL, url, pages);
+      }
+      return pages;
+    } catch (err) {
+      console.error(err);
+      return pages;
     }
-    console.log("Headers", res.headers.get("content-type"));
-    if (!res.headers.get("content-type").includes("text/html")) {
-      console.error(`Error: ${res.status} ${res.statusText}`);
-      return;
-    }
-    console.log(await res.text());
-  } catch(err) {
-    console.error(err);
-    return
   }
 }
 

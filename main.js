@@ -13,6 +13,8 @@ function main() {
 
   const baseURL = process.argv[2];
   console.log(`Crawling ${baseURL}`);
-  crawlPage(baseURL);
+  crawlPage(baseURL, baseURL, {}).then((pages) => {
+    console.log(pages);
+  });
 }
 main();

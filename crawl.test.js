@@ -4,16 +4,24 @@ const { normalizeURL, getURLsFromHTML } = require("./crawl");
 describe("normalizeURL", () => {
   const expected = "blog.boot.dev/path";
   test("https with trailing slash", () => {
-    expect(normalizeURL("https://blog.boot.dev/path/")).toBe(expected);
+    expect(normalizeURL("https://blog.boot.dev/path/")).toBe(
+      "https://" + expected,
+    );
   });
   test("https without trailing slash", () => {
-    expect(normalizeURL("https://blog.boot.dev/path")).toBe(expected);
+    expect(normalizeURL("https://blog.boot.dev/path")).toBe(
+      "https://" + expected,
+    );
   });
   test("http with trailing slash", () => {
-    expect(normalizeURL("http://blog.boot.dev/path/")).toBe(expected);
+    expect(normalizeURL("http://blog.boot.dev/path/")).toBe(
+      "http://" + expected,
+    );
   });
   test("http without trailing slash", () => {
-    expect(normalizeURL("http://blog.boot.dev/path")).toBe(expected);
+    expect(normalizeURL("http://blog.boot.dev/path")).toBe(
+      "http://" + expected,
+    );
   });
 });
 
