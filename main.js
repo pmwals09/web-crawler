@@ -1,3 +1,5 @@
+const {crawlPage} = require("./crawl.js");
+
 function main() {
   if (process.argv.length < 3) {
     console.log("Please provide a base URL");
@@ -10,6 +12,7 @@ function main() {
   }
 
   const baseURL = process.argv[2];
-  console.log("Crawler starting at base URL: " + baseURL);
+  console.log(`Crawling ${baseURL}`);
+  crawlPage(baseURL);
 }
 main();

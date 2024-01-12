@@ -33,7 +33,27 @@ function getURLsFromHTML(html, baseURL) {
   return urls;
 }
 
+async function crawlPage(currentURL) {
+  try {
+    const res = await fetch(currentURL);
+    if (res.status >= 400) {
+      console.error(`Error: ${res.status} ${res.statusText}`);
+      return;
+    }
+    console.log("Headers", res.headers.get("content-type"));
+    if (!res.headers.get("content-type").includes("text/html")) {
+      console.error(`Error: ${res.status} ${res.statusText}`);
+      return;
+    }
+    console.log(await res.text());
+  } catch(err) {
+    console.error(err);
+    return
+  }
+}
+
 module.exports = {
   normalizeURL,
   getURLsFromHTML,
+  crawlPage,
 };
